@@ -1,6 +1,6 @@
 [package]
 name = "pyo3-mp"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["h <ho.kim@gnu.ac.kr>"]
 edition = "2018"
 

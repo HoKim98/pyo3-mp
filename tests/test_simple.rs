@@ -17,7 +17,7 @@ fn foo(_py: Python, i: usize) -> PyResult<()> {
 }
 
 /// Converts the pyfunction into python object.
-fn build_foo<'a>(py: Python<'a>) -> PyResult<Py<PyAny>> {
+fn build_foo(py: Python) -> PyResult<Py<PyAny>> {
     Ok(wrap_pyfunction!(foo)(py)?.into_py(py))
 }
 
@@ -25,15 +25,20 @@ fn build_foo<'a>(py: Python<'a>) -> PyResult<Py<PyAny>> {
 fn main() -> PyResult<()> {
     Python::with_gil(|py| {
         // Let's get a sample python function.
-        let foo = build_foo(py)?;
+        let f = build_foo(py)?;
 
         let mut mp = Process::new(py)?;
+        assert_eq!(mp.is_running(), false);
 
         // Spawn 10 processes.
         for i in 0..10 {
-            mp.spawn(&foo, (i,), None)?;
+            mp.spawn(&f, (i,), None)?;
         }
+        assert_eq!(mp.is_running(), true);
 
-        mp.join()
+        mp.join()?;
+        assert_eq!(mp.is_running(), false);
+
+        Ok(())
     })
 }

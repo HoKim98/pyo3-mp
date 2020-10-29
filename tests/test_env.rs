@@ -15,7 +15,7 @@ fn foo(_py: Python) -> PyResult<()> {
 }
 
 /// Converts the pyfunction into python object.
-fn build_foo<'a>(py: Python<'a>) -> PyResult<Py<PyAny>> {
+fn build_foo(py: Python) -> PyResult<Py<PyAny>> {
     Ok(wrap_pyfunction!(foo)(py)?.into_py(py))
 }
 
@@ -23,7 +23,7 @@ fn build_foo<'a>(py: Python<'a>) -> PyResult<Py<PyAny>> {
 fn main() -> PyResult<()> {
     Python::with_gil(|py| {
         // Let's get a sample python function.
-        let foo = build_foo(py)?;
+        let f = build_foo(py)?;
 
         let mut mp = Process::new(py)?;
 
@@ -31,7 +31,7 @@ fn main() -> PyResult<()> {
         for i in 0..10 {
             // The arguments can be passed by environment variables.
             env::set_var("PYO3_MP_INDEX", format!("{}", i));
-            mp.spawn(&foo, (), None)?;
+            mp.spawn(&f, (), None)?;
         }
 
         mp.join()
