@@ -55,6 +55,20 @@ impl<'a> Process<'a> {
 
 impl<'a> Drop for Process<'a> {
     fn drop(&mut self) {
-        self.join().unwrap();
+        Python::with_gil(|py| -> PyResult<()> {
+            // join the subprocesses
+            self.join()?;
+
+            // join the main thread
+            py.import("threading")?.call0("_shutdown")?;
+            Ok(())
+        })
+        .map_err(|e| {
+            Python::with_gil(|py| {
+                e.print_and_set_sys_last_vars(py);
+                println!();
+            })
+        })
+        .unwrap()
     }
 }
